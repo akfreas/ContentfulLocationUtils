@@ -8,4 +8,8 @@ setup(name='ContentfulLocationUtils',
       author_email='alex@sashimiblade.com',
       license='MIT',
       packages=['contentful_utils'],
+      install_requires=[
+          'requests',
+          'contentful'
+      ],
       zip_safe=False)
