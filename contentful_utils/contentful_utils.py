@@ -8,9 +8,10 @@ import time
 class ContentfulImporter(object):
 
 
-    def __init__(self, space_id, access_token=None, publish_token=None):
+    def __init__(self, space_id, location_content_type_id='location', access_token=None, publish_token=None):
 
         super(ContentfulImporter, self).__init__()
+        self.location_content_type_id = location_content_type_id
         self.space_id = space_id
         self.access_token = access_token
         self.publish_token = publish_token
@@ -26,7 +27,7 @@ class ContentfulImporter(object):
 
     def fetch_unique_source_ids(self):
         try:
-            rx = self.contentful_client.entries({'content_type': 'location'})
+            rx = self.contentful_client.entries({'content_type': self.location_content_type_id})
             field_list = [x.fields().get('source_id') for x in rx if x.fields().get('source_id') is not None]
             return field_list
         except:
@@ -110,7 +111,7 @@ class ContentfulImporter(object):
 
     def delete_location(self, contentful_id):
         print('deleting entry {}'.format(contentful_id))
-        request = self.perform_contentful_request('delete', '/entries/{}'.format(contentful_id), 'location', fields={})
+        request = self.perform_contentful_request('delete', '/entries/{}'.format(contentful_id), self.location_content_type_id, fields={})
         
  
         if request.status_code < 300:
@@ -124,7 +125,7 @@ class ContentfulImporter(object):
     def import_location(self, category, fields, source, source_id, publish=False):
 
         existing_entries = self.contentful_client.entries({
-            'content_type': 'location', 
+            'content_type': self.location_content_type_id, 
             'fields.dataSource': source,
             'fields.sourceId': str(source_id)
         })
@@ -139,7 +140,7 @@ class ContentfulImporter(object):
                     pass
 
         existing_entries = self.contentful_client.entries({
-            'content_type': 'location', 
+            'content_type': self.location_content_type_id, 
             'fields.sourceId': source_id
         })
         if existing_entries.total > 0:
@@ -154,7 +155,7 @@ class ContentfulImporter(object):
             'categoryRef': {'sys': {'id': category_id, 'linkType': 'Entry', 'type': 'Link'}}
         })
 
-        request = self.perform_contentful_request('post', '/entries', 'location', new_fields)
+        request = self.perform_contentful_request('post', '/entries', self.location_content_type_id, new_fields)
         response = request.json()
 
         if request.status_code < 300:
